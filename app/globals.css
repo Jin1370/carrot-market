@@ -1,1 +1,30 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+base: @layer base 내부에 작성된 Tailwind의 기본 스타일(Base Styles)를 가져옴
+components: @layer components 내부에 작성된 Tailwind 스타일을 가져옴 - 사용자 정의 컴포넌트 스타일 추가할 때 사용
+utilities: @layer utilities 내부에 작성된 Tailwind의 모든 유틸리티 클래스(text-center, bg-red-500, flex, mt-4 등)를 가져옴
+*/
+
+/*apply directive를 이용해 모든 링크의 기본값을 넣음*/
+@layer base {
+    a {
+        @apply text-blue-500;
+    }
+}
+
+/*클래스 정의, 재사용*/
+@layer components {
+    .btn {
+        @apply w-full bg-black h-10 text-white rounded-sexy-name mt-tomato;
+    }
+}
+
+/*application 모든 곳에서 사용할 수 있는 새로운 클래스. 짧은 클래스로 특정 속성을 세밀하게 조정*/
+@layer utilities {
+    .text-bigger-hello {
+        @apply text-3xl font-semibold;
+    }
+}
