@@ -11,18 +11,19 @@ utilities: @layer utilities 내부에 작성된 Tailwind의 모든 유틸리티 
 /*apply directive를 이용해 모든 링크의 기본값을 넣음*/
 @layer base {
     a {
-        @apply text-blue-500;
+        @apply text-orange-500;
     }
 }
 
-/*클래스 정의, 재사용*/
+/*사용자 정의 클래스. 버튼, 카드, 폼 같은 큰 UI 요소. 조합된 스타일 */
 @layer components {
-    .btn {
-        @apply w-full bg-black h-10 text-white rounded-sexy-name mt-tomato;
+    .primary-btn {
+        @apply w-full bg-orange-500 text-white
+        font-medium rounded-md text-center hover:bg-orange-400 transition-colors;
     }
 }
 
-/*application 모든 곳에서 사용할 수 있는 새로운 클래스. 짧은 클래스로 특정 속성을 세밀하게 조정*/
+/*사용자 정의 클래스. 폰트 크기, 그림자 효과 같은 작은 스타일 요소. 짧은 클래스로 특정 속성을 세밀하게 조정*/
 @layer utilities {
     .text-bigger-hello {
         @apply text-3xl font-semibold;
