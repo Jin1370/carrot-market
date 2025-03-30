@@ -1,8 +1,6 @@
 import FormButton from "@/components/form-btn";
 import FormInput from "@/components/form-input";
 import SocialLogin from "@/components/social-login";
-import { ChatBubbleOvalLeftEllipsisIcon } from "@heroicons/react/24/solid";
-import Link from "next/link";
 
 export default function CreateAccount() {
     return (
@@ -17,26 +15,30 @@ export default function CreateAccount() {
                     placeholder="Username"
                     required
                     errors={["username is too short"]}
+                    name="username"
                 />
                 <FormInput
                     type="text"
                     placeholder="Email"
                     required
                     errors={[]}
+                    name="email"
                 />
                 <FormInput
                     type="password"
                     placeholder="Password"
                     required
                     errors={[]}
+                    name="password"
                 />
                 <FormInput
                     type="password"
                     placeholder="Confirm Password"
                     required
                     errors={[]}
+                    name="confirm password"
                 />
-                <FormButton loading={false} text="Create account" />
+                <FormButton text="Create account" />
             </form>
             <SocialLogin />
         </div>
