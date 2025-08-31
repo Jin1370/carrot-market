@@ -5,11 +5,14 @@ interface Routes {
     [key: string]: boolean;
 }
 
+//array보다 object가 탐색 빠름
 const publicOnlyUrls: Routes = {
     "/": true,
     "/login": true,
     "/sms": true,
     "/create-account": true,
+    "/github/start": true,
+    "/github/complete": true,
 };
 
 //미들웨어는 edge runtime(node.js API의 경량 버전)에 실행-> 많은 것을 할 수는 없음

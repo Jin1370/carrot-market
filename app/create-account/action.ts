@@ -8,7 +8,7 @@ import db from "@/lib/db";
 import { z } from "zod";
 import bcrypt from "bcrypt";
 import { redirect } from "next/navigation";
-import getSession from "@/lib/session";
+import getSession, { updateSession } from "@/lib/session";
 
 const checkUserName = (username: string) => !username.includes("potato");
 
@@ -103,10 +103,7 @@ export async function createAccount(prevState: any, formData: FormData) {
                 id: true,
             },
         });
-        //cookie: 웹사이트를 방문했을 때 만들어진 정보를 저장하는 파일
-        const session = await getSession();
-        session.id = user.id; //쿠키 내용 수정
-        await session.save(); //쿠키 저장
+        await updateSession(user.id);
         redirect("/profile");
     }
 }

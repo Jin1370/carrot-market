@@ -8,7 +8,7 @@ import {
 import db from "@/lib/db";
 import { z } from "zod";
 import bcrypt from "bcrypt";
-import getSession from "@/lib/session";
+import getSession, { updateSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 
 const checkEmailExists = async (email: string) => {
@@ -36,7 +36,7 @@ const formSchema = z.object({
     //.regex(PASSWORD_REGEX, PASSWORD_REGEX_ERROR),
 });
 
-export async function logIn(prevState: any, formData: FormData) {
+export async function login(prevState: any, formData: FormData) {
     const data = {
         email: formData.get("email"),
         password: formData.get("password"),
@@ -60,9 +60,7 @@ export async function logIn(prevState: any, formData: FormData) {
             user!.password ?? "xxxx" //유저가 패스워드를 갖지 않는다면 "xxxx"와 비교
         );
         if (ok) {
-            const session = await getSession();
-            session.id = user!.id;
-            await session.save();
+            await updateSession(user!.id);
             redirect("/profile");
         } else {
             return {
@@ -72,8 +70,5 @@ export async function logIn(prevState: any, formData: FormData) {
                 },
             };
         }
-        //if the user is found, check the password hash
-        //log the user in
-        //redirect "/profile"
     }
 }
