@@ -1,5 +1,5 @@
 import db from "@/lib/db";
-import getSession, { updateSession } from "@/lib/session";
+import getSession, { logIn } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { NextRequest } from "next/server";
 
@@ -28,13 +28,32 @@ export async function GET(request: NextRequest) {
             status: 400,
         });
     }
+    //프로필 정보 가져오기
     const userProfileResponse = await fetch("https://api.github.com/user", {
         headers: {
             Authorization: `Bearer ${access_token}`,
         },
         cache: "no-cache",
     });
-    const { id, avatar_url, login } = await userProfileResponse.json();
+    let { id, avatar_url, login } = await userProfileResponse.json();
+
+    //이메일 가져오기
+    const emailResponse = await fetch("https://api.github.com/user/emails", {
+        headers: {
+            Authorization: `Bearer ${access_token}`,
+        },
+        cache: "no-cache",
+    });
+    type EmailInfo = {
+        email: string;
+        primary: boolean;
+        verified: boolean;
+        visibility: string | null;
+    };
+    const emailData: EmailInfo[] = await emailResponse.json();
+    const email = emailData.find((e) => e.primary)?.email || emailData[0].email;
+
+    // 이미 깃허브로 가입되어있으면 redirect
     const user = await db.user.findUnique({
         where: {
             github_id: id + "",
@@ -43,23 +62,37 @@ export async function GET(request: NextRequest) {
             id: true,
         },
     });
-    // 이미 깃허브로 가입되어있으면 redirect
     if (user) {
-        await updateSession(user.id);
+        await logIn(user.id);
         return redirect("/profile"); //Route Handler(GET, POST 등)는 반드시 Response를 반환해야 함
     }
     // 깃허브로 가입되어 있지 않으면 새로 가입시킴
+    // 깃허브 사용자명이 이미 가입된 사용자명과 중복되지 않는지 확인
+    const checkNameExists = async (username: string) => {
+        const user = await db.user.findUnique({
+            where: {
+                username,
+            },
+            select: {
+                id: true,
+            },
+        });
+        return Boolean(user);
+    };
+    login = (await checkNameExists(login)) ? login + "_git" : login;
+
     const newUser = await db.user.create({
         data: {
-            username: login, //이미 있는 사용자 이름이면 문제
+            username: login,
             github_id: id + "",
             avatar: avatar_url,
+            email,
         },
         select: {
             id: true,
         },
     });
-    await updateSession(newUser.id);
+    await logIn(newUser.id);
     return redirect("/profile");
 }
 

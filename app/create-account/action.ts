@@ -8,7 +8,7 @@ import db from "@/lib/db";
 import { z } from "zod";
 import bcrypt from "bcrypt";
 import { redirect } from "next/navigation";
-import getSession, { updateSession } from "@/lib/session";
+import getSession, { logIn } from "@/lib/session";
 
 const checkUserName = (username: string) => !username.includes("potato");
 
@@ -27,7 +27,7 @@ const formSchema = z
                 invalid_type_error: "Username must be a string!",
                 required_error: "Where is my username???",
             })
-            .toLowerCase()
+            //.toLowerCase()
             .trim()
             //.transform((username) => `🥕${username}🥕`) //transform된 결과 반환. 만약 {} 쓸거면 return 반드시 필요. username => {return `🥕${username}🥕`}
             .refine(checkUserName, "no potatoes allowed!"), //T or F 반환. T면 통과
@@ -103,7 +103,7 @@ export async function createAccount(prevState: any, formData: FormData) {
                 id: true,
             },
         });
-        await updateSession(user.id);
+        await logIn(user.id);
         redirect("/profile");
     }
 }

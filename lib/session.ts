@@ -16,7 +16,7 @@ export default async function getSession() {
     });
 }
 
-export async function updateSession(id: any) {
+export async function logIn(id: any) {
     const session = await getSession();
     session.id = id; //쿠키 내용 수정
     await session.save(); //쿠키 저장

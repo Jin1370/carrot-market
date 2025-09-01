@@ -8,7 +8,7 @@ import {
 import db from "@/lib/db";
 import { z } from "zod";
 import bcrypt from "bcrypt";
-import getSession, { updateSession } from "@/lib/session";
+import getSession, { logIn } from "@/lib/session";
 import { redirect } from "next/navigation";
 
 const checkEmailExists = async (email: string) => {
@@ -60,7 +60,7 @@ export async function login(prevState: any, formData: FormData) {
             user!.password ?? "xxxx" //유저가 패스워드를 갖지 않는다면 "xxxx"와 비교
         );
         if (ok) {
-            await updateSession(user!.id);
+            await logIn(user!.id);
             redirect("/profile");
         } else {
             return {
