@@ -1,3 +1,8 @@
+import {
+    getAccessToken,
+    getUserEmail,
+    getUserProfile,
+} from "@/lib/auth/github";
 import db from "@/lib/db";
 import getSession, { logIn } from "@/lib/session";
 import { redirect } from "next/navigation";
@@ -10,48 +15,17 @@ export async function GET(request: NextRequest) {
             status: 400,
         });
     }
-    const accessTokenParams = new URLSearchParams({
-        client_id: process.env.GITHUB_CLIENT_ID!,
-        client_secret: process.env.GITHUB_CLIENT_SECRET!,
-        code, //code: code
-    }).toString();
-    const accessTokenURL = `https://github.com/login/oauth/access_token?${accessTokenParams}`;
-    const accessTokenResponse = await fetch(accessTokenURL, {
-        method: "POST",
-        headers: {
-            Accept: "application/json",
-        },
-    });
-    const { error, access_token } = await accessTokenResponse.json();
+    //액세스 토큰 가져오기
+    const { error, access_token } = await getAccessToken(code);
     if (error) {
         return new Response(null, {
             status: 400,
         });
     }
     //프로필 정보 가져오기
-    const userProfileResponse = await fetch("https://api.github.com/user", {
-        headers: {
-            Authorization: `Bearer ${access_token}`,
-        },
-        cache: "no-cache",
-    });
-    let { id, avatar_url, login } = await userProfileResponse.json();
-
+    let { id, avatar_url, login } = await getUserProfile(access_token);
     //이메일 가져오기
-    const emailResponse = await fetch("https://api.github.com/user/emails", {
-        headers: {
-            Authorization: `Bearer ${access_token}`,
-        },
-        cache: "no-cache",
-    });
-    type EmailInfo = {
-        email: string;
-        primary: boolean;
-        verified: boolean;
-        visibility: string | null;
-    };
-    const emailData: EmailInfo[] = await emailResponse.json();
-    const email = emailData.find((e) => e.primary)?.email || emailData[0].email;
+    const email = await getUserEmail(access_token);
 
     // 이미 깃허브로 가입되어있으면 redirect
     const user = await db.user.findUnique({
@@ -95,8 +69,3 @@ export async function GET(request: NextRequest) {
     await logIn(newUser.id);
     return redirect("/profile");
 }
-
-//로그인 함수화(세션을 겟하고, id를 넣어주고, 저장)
-//깃허브로 가입 시 사용자명
-//user의 email 가져오기(같은 access token 사용 가능)
-//access token 가져오는 함수 / user profile 가져오는 함수 / user email 가져오는 함수 분리. 타입스크립트
