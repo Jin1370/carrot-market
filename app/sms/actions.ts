@@ -1,6 +1,5 @@
 "use server";
 
-import twilio from "twilio";
 import { Vonage } from "@vonage/server-sdk";
 import { Auth } from "@vonage/auth";
 import { z } from "zod";
@@ -13,10 +12,10 @@ import { logIn } from "@/lib/session";
 const phoneSchema = z
     .string()
     .trim()
-    .refine(
-        (phone) => validator.isMobilePhone(phone, "ko-KR"),
-        "Wrong phone format"
-    );
+    .refine((phone) => validator.isMobilePhone(phone, "ko-KR"), {
+        message: "Wrong phone format",
+        path: ["phone"],
+    });
 
 async function tokenExists(token: number) {
     const exists = await db.sMSToken.findUnique({
@@ -34,7 +33,10 @@ const tokenSchema = z.coerce
     .number()
     .min(100000)
     .max(999999)
-    .refine(tokenExists, "This token does not exist."); //유저가 입력한 string을 number로 변환 시도. coercion:강제
+    .refine(tokenExists, {
+        message: "This token does not exist.",
+        path: ["token"],
+    }); //유저가 입력한 string을 number로 변환 시도. coercion:강제
 
 interface ActionState {
     token: boolean;
@@ -84,6 +86,7 @@ export async function smsLogin(prevState: ActionState, formData: FormData) {
             await db.sMSToken.create({
                 data: {
                     token,
+                    phone: result.data,
                     user: {
                         connectOrCreate: {
                             where: {
@@ -99,47 +102,67 @@ export async function smsLogin(prevState: ActionState, formData: FormData) {
                     },
                 },
             });
-            const credentials = new Auth({
-                apiKey: process.env.VONAGE_API_KEY,
-                apiSecret: process.env.VONAGE_API_SECRET,
-            });
-            const vonage = new Vonage(credentials);
-            await vonage.sms.send({
-                to: process.env.MY_PHONE_NUMBER!, //to: result.data
-                from: process.env.VONAGE_SMS_FROM!,
-                text: `Your Karrot verification code is: ${token}`,
-            });
+            // const credentials = new Auth({
+            //     apiKey: process.env.VONAGE_API_KEY,
+            //     apiSecret: process.env.VONAGE_API_SECRET,
+            // });
+            // const vonage = new Vonage(credentials);
+            // await vonage.sms.send({
+            //     to: process.env.MY_PHONE_NUMBER!, //to: result.data
+            //     from: process.env.VONAGE_SMS_FROM!,
+            //     text: `Your Karrot verification code is: ${token}`,
+            // });
             return {
                 token: true,
             };
         }
     } else {
-        //이전에 token이 true였다면
-        const result = await tokenSchema.spa(token);
-        if (!result.success) {
-            //사용자가 입력한 토큰을 safeParse한 결과가 형식에 맞지 않는다면
+        // 이전에 token이 true였다면
+        const tokenResult = await tokenSchema.spa(token);
+        const phoneResult = await phoneSchema.spa(phone);
+
+        if (!tokenResult.success || !phoneResult.success) {
             return {
                 token: true,
-                error: result.error.flatten(),
+                error: {
+                    fieldErrors: {
+                        ...(tokenResult.success
+                            ? {}
+                            : tokenResult.error.flatten().fieldErrors),
+                        ...(phoneResult.success
+                            ? {}
+                            : phoneResult.error.flatten().fieldErrors),
+                    },
+                },
             };
         } else {
-            //사용자가 입력한 토큰을 safeParse한 결과가 형식에 맞고 db에 존재한다면
-            const token = await db.sMSToken.findUnique({
+            //사용자가 입력한 토큰과 전화번호를 safeParse한 결과가 형식에 맞고 db에 존재한다면
+            const token = await db.sMSToken.findFirst({
                 where: {
-                    token: result.data.toString(),
+                    token: tokenResult.data.toString(),
+                    phone: phoneResult.data.toString(),
                 },
                 select: {
                     id: true,
                     userId: true,
                 },
             });
-            logIn(token!.userId);
-            await db.sMSToken.delete({
-                where: {
-                    id: token!.id,
-                },
-            });
-            redirect("/profile");
+            if (token) {
+                logIn(token!.userId);
+                await db.sMSToken.delete({
+                    where: {
+                        id: token!.id,
+                    },
+                });
+                redirect("/profile");
+            } else {
+                return {
+                    token: true,
+                    error: {
+                        fieldErrors: { phone: ["Wrong phone number"] },
+                    },
+                };
+            }
         }
     }
 }

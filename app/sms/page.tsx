@@ -20,22 +20,52 @@ export default function SMSLogIn() {
             </div>
             <form action={trigger} className="flex flex-col gap-3">
                 {state.token ? (
-                    <Input
-                        name="token"
-                        type="number"
-                        placeholder="Verification code"
-                        required
-                        min={100000} //minLength 아님 주의
-                        max={999999}
-                        errors={state.error?.formErrors}
-                    />
+                    <div className="flex flex-col gap-3">
+                        <Input
+                            name="token"
+                            type="number"
+                            placeholder="Verification code"
+                            required
+                            min={100000} //minLength 아님 주의
+                            max={999999}
+                            errors={
+                                (
+                                    state.error?.fieldErrors as Record<
+                                        string,
+                                        string[]
+                                    >
+                                )?.token
+                            }
+                        />
+                        <Input
+                            name="phone"
+                            type="text"
+                            placeholder="Phone number (Verification Sent)"
+                            required
+                            errors={
+                                (
+                                    state.error?.fieldErrors as Record<
+                                        string,
+                                        string[]
+                                    >
+                                )?.phone
+                            }
+                        />
+                    </div>
                 ) : (
                     <Input
                         name="phone"
                         type="text"
                         placeholder="Phone number"
                         required
-                        errors={state.error?.formErrors}
+                        errors={
+                            (
+                                state.error?.fieldErrors as Record<
+                                    string,
+                                    string[]
+                                >
+                            )?.phone
+                        }
                     />
                 )}
 
