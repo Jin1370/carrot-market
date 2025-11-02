@@ -55,7 +55,7 @@ export default async function ProductDetail(props: {
                 id: product.id,
             },
         });
-        redirect("/products");
+        redirect("/home");
     };
 
     return (
