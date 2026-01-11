@@ -53,8 +53,13 @@ const getCachedProductTitle = nextCache(getProductTitle, ["product-title"], {
     tags: ["product-title", "xxxx"], //유일하지 않으며, 다수의 tag 가질 수 있음
 });
 
-export async function generateMetadata({ params }: { params: { id: string } }) {
-    const product = await getCachedProductTitle(Number(params.id));
+export async function generateMetadata({
+    params,
+}: {
+    params: Promise<{ id: string }>;
+}) {
+    const { id } = await params;
+    const product = await getCachedProductTitle(Number(id));
     return {
         title: `${product?.title}`,
     };
@@ -78,7 +83,7 @@ export default async function ProductDetail(props: {
     const isOwner = await getIsOwner(product.userId);
     const revalidate = async () => {
         "use server";
-        revalidateTag("xxxx");
+        revalidateTag("xxxx"); //어떤 캐시를 업데이트할지 제어 가능
     };
 
     const deleteProduct = async () => {
