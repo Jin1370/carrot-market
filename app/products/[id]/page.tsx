@@ -31,6 +31,13 @@ async function getProduct(id: number) {
     return product;
 }
 
+export async function generateMetadata({ params }: { params: { id: string } }) {
+    const product = await getProduct(Number(params.id));
+    return {
+        title: `Product!! ${product?.title}`,
+    };
+}
+
 /*Next.js(App Router)에서 동적 라우트 파일 ([id]/page.tsx 같은 경우) 은 기본적으로 이런 객체를 인자로 넘겨줌:
 function Page(props: { params: { id: string }, searchParams: Record<string, string> }) {}
 구조분해할당-객체나 배열에서 필요한 값만 꺼내서 변수에 담는 문법*/
