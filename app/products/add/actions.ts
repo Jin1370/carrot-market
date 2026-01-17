@@ -5,6 +5,7 @@ import fs from "fs/promises";
 import db from "@/lib/db";
 import getSession from "@/lib/session";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 
 const productSchema = z.object({
     photo: z.string({
@@ -30,9 +31,9 @@ export async function uploadProduct(_: any, formData: FormData) {
     };
     if (data.photo instanceof File) {
         const photoData = await data.photo.arrayBuffer();
-        await fs.appendFile(
+        await fs.writeFile(
             `./public/${data.photo.name}`,
-            Buffer.from(photoData)
+            Buffer.from(photoData),
         );
         data.photo = `/${data.photo.name}`;
     }
@@ -58,6 +59,7 @@ export async function uploadProduct(_: any, formData: FormData) {
                     id: true,
                 },
             });
+            revalidatePath("/home");
             redirect(`/products/${product.id}`);
         }
     }

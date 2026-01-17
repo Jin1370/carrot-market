@@ -20,7 +20,7 @@ export default function ProductList({ initialProducts }: ProductListProps) {
         const observer = new IntersectionObserver(
             async (
                 entries: IntersectionObserverEntry[], //observe하는 모든 요소
-                observer: IntersectionObserver //observer 자체
+                observer: IntersectionObserver, //observer 자체
             ) => {
                 const element = entries[0];
                 if (element.isIntersecting && trigger.current) {
@@ -39,7 +39,7 @@ export default function ProductList({ initialProducts }: ProductListProps) {
             {
                 threshold: 1.0,
                 rootMargin: "0px 0px -100px 0px",
-            }
+            },
         );
         //span에 trigger가 추가되면 trigger를 observe
         if (trigger.current) {
@@ -49,6 +49,7 @@ export default function ProductList({ initialProducts }: ProductListProps) {
             observer.disconnect(); //자원 해제. useEffect 안에서 return이 하는 역할은 클린업. 컴포넌트가 언마운트될 때 또는 다시 실행되기 직전
         };
     }, [page]); //dependency가 page
+
     return (
         <div className="p-5 flex flex-col gap-5">
             {products.map((product) => (

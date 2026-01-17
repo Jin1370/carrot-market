@@ -5,7 +5,11 @@ import { UserIcon } from "@heroicons/react/24/solid";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { unstable_cache as nextCache, revalidateTag } from "next/cache";
+import {
+    unstable_cache as nextCache,
+    revalidatePath,
+    revalidateTag,
+} from "next/cache";
 
 async function getIsOwner(userId: number) {
     const session = await getSession();
@@ -33,24 +37,7 @@ async function getProduct(id: number) {
     return product;
 }
 const getCachedProduct = nextCache(getProduct, ["product-detail"], {
-    tags: ["product-detail", "xxxx"],
-});
-
-async function getProductTitle(id: number) {
-    console.log("title");
-    const product = await db.product.findUnique({
-        where: {
-            id,
-        },
-        select: {
-            title: true,
-        },
-    });
-    return product;
-}
-
-const getCachedProductTitle = nextCache(getProductTitle, ["product-title"], {
-    tags: ["product-title", "xxxx"], //유일하지 않으며, 다수의 tag 가질 수 있음
+    tags: ["product-detail"],
 });
 
 export async function generateMetadata({
@@ -59,9 +46,9 @@ export async function generateMetadata({
     params: Promise<{ id: string }>;
 }) {
     const { id } = await params;
-    const product = await getCachedProductTitle(Number(id));
+    const product = await getCachedProduct(Number(id));
     return {
-        title: `${product?.title}`,
+        title: product?.title || "상품 상세",
     };
 }
 
@@ -81,11 +68,6 @@ export default async function ProductDetail(props: {
         return notFound();
     }
     const isOwner = await getIsOwner(product.userId);
-    const revalidate = async () => {
-        "use server";
-        revalidateTag("xxxx"); //어떤 캐시를 업데이트할지 제어 가능
-    };
-
     const deleteProduct = async () => {
         "use server";
         await db.product.delete({
@@ -93,9 +75,10 @@ export default async function ProductDetail(props: {
                 id: product.id,
             },
         });
+        revalidateTag("product-detail");
+        revalidatePath("/home");
         redirect("/home");
     };
-
     return (
         <div>
             <div className="relative aspect-square">
@@ -131,20 +114,47 @@ export default async function ProductDetail(props: {
                 <span className="font-semibold text-xl">
                     {formatToWon(product.price)}원
                 </span>
-                {isOwner ? (
-                    <form action={revalidate}>
-                        <button className="bg-red-500 px-5 py-2.5 rounded-md text-white font-semibold">
-                            Revalidate title cache
-                        </button>
-                    </form>
-                ) : null}
-                <Link
-                    className="bg-orange-500 px-5 py-2.5 rounded-md text-white font-semibold"
-                    href={``}
-                >
-                    채팅하기
-                </Link>
+                <div className="flex items-center gap-2">
+                    {isOwner ? (
+                        <>
+                            <form action={deleteProduct}>
+                                <button className="bg-red-500 px-5 py-2.5 rounded-md text-white font-semibold">
+                                    삭제하기
+                                </button>
+                            </form>
+                            <Link
+                                className="bg-red-500 px-5 py-2.5 rounded-md text-white font-semibold"
+                                href={`/products/${product.id}/edit`}
+                            >
+                                수정하기
+                            </Link>
+                        </>
+                    ) : null}
+                    <Link
+                        className="bg-orange-500 px-5 py-2.5 rounded-md text-white font-semibold"
+                        href={``}
+                    >
+                        채팅하기
+                    </Link>
+                </div>
             </div>
         </div>
     );
+}
+
+/*
+generateStaticParams: 빌드 시점에 동적 라우트([id])에 어떤 값들이 들어올지 미리 알려주어, 해당 페이지들을 미리 HTML로 만들어두는(정적 생성) 함수
+동적 라우팅 페이지 일부를 정적 페이지(Static Page)로 변환하는 기능
+원래 [id]가 붙은 페이지는 사용자가 접속할 때마다 서버가 DB를 조회해서 페이지를 만들지만, 미리 html을 만들어두면 바로 제공 가능
+유저가 미리 생성되지 않은 페이지로 이동 시, dynamic page로 간주하고 db에 접속하여 화면을 보여준 뒤 저장하여 다시 static page가 됨
+*서비스가 배포되기 전, 즉 빌드 타임(컴퓨터가 HTML을 굽는 시간)에 실행. 하지만 getSession()은 런타임(사용자가 접속한 순간)에 쿠키를 확인해야 알 수 있는 정보
+    ->getIsOwner 로직을 클라이언트 컴포넌트로 분리하거나 페이지 렌더링 후에 처리
+*/
+export async function generateStaticParams() {
+    const products = await db.product.findMany({
+        select: {
+            id: true,
+        },
+    });
+    return products.map((product) => ({ id: String(product.id) }));
 }
