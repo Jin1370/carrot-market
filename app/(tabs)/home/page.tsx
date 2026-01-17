@@ -33,7 +33,6 @@ import db from "@/lib/db";
 import { PlusIcon } from "@heroicons/react/24/solid";
 import { Prisma } from "@prisma/client";
 import { unstable_cache as nextCache } from "next/cache";
-import Link from "next/link";
 
 //cache 안에 "home-products"를 key로 하는 캐시가 있는지 확인하고 있으면 그 데이터를 넘겨줌, 없으면 key와 데이터를 저장
 const getCachedProducts = nextCache(getInitialProducts, ["home-products"]);

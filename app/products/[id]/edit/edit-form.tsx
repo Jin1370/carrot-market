@@ -4,9 +4,8 @@ import Button from "@/components/button";
 import Input from "@/components/input";
 import { PhotoIcon } from "@heroicons/react/24/solid";
 import { useActionState, useState } from "react";
-import { editProduct } from "./actions"; // 같은 폴더의 actions
+import { editProduct } from "./actions";
 
-// product의 타입을 정의해두면 자동완성이 되어 편합니다.
 interface ProductProps {
     id: number;
     photo: string;
@@ -32,20 +31,17 @@ export default function EditForm({ product }: { product: ProductProps }) {
         if (!files) return;
         const file = files[0];
 
-        // 이미지 타입 검사
         if (!file.type.startsWith("image/")) {
             alert("이미지 파일만 업로드해주세요.");
             return;
         }
 
-        // 용량 검사 (3MB)
         const maxSize = 3 * 1024 * 1024;
         if (file.size > maxSize) {
             alert("3MB 이하만 업로드 할 수 있습니다.");
             return;
         }
 
-        // 미리보기 URL 생성
         const url = URL.createObjectURL(file);
         setPreview(url);
     };

@@ -4,7 +4,7 @@ import { z } from "zod";
 import fs from "fs/promises";
 import db from "@/lib/db";
 import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 const productSchema = z.object({
     photo: z.string().optional(), // 사진은 필수가 아님
@@ -52,7 +52,7 @@ export async function editProduct(
             },
             data: result.data,
         });
-
+        revalidateTag("product-detail");
         revalidatePath(`/products/${productId}`);
         revalidatePath("/home");
         redirect(`/products/${productId}`);
