@@ -1,4 +1,3 @@
-import { generateMetadata } from "@/app/products/[id]/page";
 import db from "@/lib/db";
 import { formatToTimeAgo } from "@/lib/utils";
 import {
