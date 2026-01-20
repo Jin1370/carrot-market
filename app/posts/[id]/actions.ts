@@ -2,7 +2,7 @@
 
 import db from "@/lib/db";
 import getSession from "@/lib/session";
-import { revalidateTag } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 export async function likePost(postId: number) {
     const session = await getSession();
@@ -29,5 +29,33 @@ export async function dislikePost(postId: number) {
             },
         });
         revalidateTag(`like-status-${postId}`);
+    } catch (e) {}
+}
+export async function deleteComment(id: number, postId: number) {
+    try {
+        await db.comment.delete({
+            where: {
+                id,
+            },
+        });
+        revalidateTag(`comments-${postId}`);
+    } catch (e) {}
+}
+
+export async function uploadComment(postId: number, formData: FormData) {
+    try {
+        const payload = formData.get("comment");
+        if (!payload || typeof payload !== "string") {
+            return;
+        }
+        const session = await getSession();
+        await db.comment.create({
+            data: {
+                payload,
+                userId: session.id!,
+                postId: postId,
+            },
+        });
+        revalidateTag(`comments-${postId}`);
     } catch (e) {}
 }

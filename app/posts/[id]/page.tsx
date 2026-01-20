@@ -1,11 +1,18 @@
+import Button from "@/components/button";
+import Input from "@/components/input";
 import LikeButton from "@/components/like-button";
 import db from "@/lib/db";
 import getSession from "@/lib/session";
 import { formatToTimeAgo } from "@/lib/utils";
 import { EyeIcon } from "@heroicons/react/24/solid";
-import { unstable_cache as nextCache, revalidateTag } from "next/cache";
+import {
+    unstable_cache as nextCache,
+    revalidatePath,
+    revalidateTag,
+} from "next/cache";
 import Image from "next/image";
 import { notFound } from "next/navigation";
+import { deleteComment, uploadComment } from "./actions";
 
 async function getPost(id: number) {
     try {
@@ -65,12 +72,51 @@ async function getLikeStatus(postId: number, userId: number) {
 function getCachedLikeStatus(postId: number, userId: number) {
     const cachedOperation = nextCache(
         (postId) => getLikeStatus(postId, userId),
-        ["product-like-status"],
+        ["like-status"],
         {
             tags: [`like-status-${postId}`],
         },
     );
     return cachedOperation(postId);
+}
+
+async function getComments(postId: number) {
+    const comments = await db.comment.findMany({
+        where: {
+            postId,
+        },
+        select: {
+            id: true,
+            payload: true,
+            created_at: true,
+            userId: true,
+            user: {
+                select: {
+                    username: true,
+                    avatar: true,
+                },
+            },
+        },
+    });
+    return comments;
+}
+function getCachedComments(postId: number) {
+    const cachedOperation = nextCache(getComments, ["comments"], {
+        tags: [`comments-${postId}`],
+    });
+    return cachedOperation(postId);
+}
+
+export async function generateMetadata({
+    params,
+}: {
+    params: Promise<{ id: string }>;
+}) {
+    const { id } = await params;
+    const post = await getCachedPost(Number(id));
+    return {
+        title: post?.title || "포스트 상세",
+    };
 }
 
 export default async function PostDetail({
@@ -90,6 +136,9 @@ export default async function PostDetail({
 
     const session = await getSession();
     const { likeCount, isLiked } = await getCachedLikeStatus(id, session.id!);
+
+    const comments = await getCachedComments(id);
+
     return (
         <div className="p-5 text-white">
             <div className="flex items-center gap-2 mb-2">
@@ -124,6 +173,66 @@ export default async function PostDetail({
                     postId={id}
                 />
             </div>
+            <div className="flex flex-col py-7">
+                {comments.map((comment) => (
+                    <div
+                        key={comment.id}
+                        className="flex items-center justify-between mb-5 pt-5 border-t border-neutral-500 last:mb-0 text-sm"
+                    >
+                        <div className="flex items-center gap-5">
+                            <Image
+                                width={28}
+                                height={28}
+                                className="size-7 rounded-full"
+                                src={comment.user.avatar!}
+                                alt={comment.user.username}
+                            />
+                            <div className="flex flex-col">
+                                <div>
+                                    <span>{comment.user.username}</span>
+                                    <span> • </span>
+                                    <span className="text-xs">
+                                        {formatToTimeAgo(
+                                            comment.created_at.toString(),
+                                        )}
+                                    </span>
+                                </div>
+                                <span>{comment.payload}</span>
+                            </div>
+                        </div>
+                        {session.id === comment.userId ? (
+                            <form
+                                action={deleteComment.bind(
+                                    null,
+                                    comment.id,
+                                    id,
+                                )}
+                            >
+                                <button>삭제</button>
+                            </form>
+                        ) : null}
+                    </div>
+                ))}
+            </div>
+            <form
+                action={uploadComment.bind(null, id)}
+                className="fixed bottom-10 left-0 w-full flex flex-col gap-2 border-t border-neutral-500 p-5 bg-neutral-900"
+            >
+                <span>댓글 작성</span>
+                <div className="flex w-full gap-2 items-start">
+                    <div className="flex-[8]">
+                        <Input
+                            name="comment"
+                            required
+                            placeholder="댓글을 작성하세요"
+                            type="text"
+                        />
+                    </div>
+                    <div className="flex-[2]">
+                        <Button text="완료" />
+                    </div>
+                </div>
+            </form>
         </div>
     );
 }
