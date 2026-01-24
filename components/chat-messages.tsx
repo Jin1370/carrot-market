@@ -6,6 +6,7 @@ import { ArrowUpCircleIcon } from "@heroicons/react/24/solid";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { createClient, RealtimeChannel } from "@supabase/supabase-js";
+import { saveMessage } from "@/app/chats/actions";
 
 const SUPABASE_PUBLIC_KEY = "sb_publishable_D_S9ITfdGFAfB_7VOABUMA_xgt0jhpR";
 const SUPABASE_URL = "https://qwdsrxbqzmrmrgsysagb.supabase.co";
@@ -37,7 +38,7 @@ export default function ChatMessagesList({
         setMessage(value);
         // = setMessage(event.target.value);
     };
-    const onSubmit = (event: React.FormEvent) => {
+    const onSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
         setMessages((previousMsgs) => [
             ...previousMsgs,
@@ -66,6 +67,7 @@ export default function ChatMessagesList({
                 },
             },
         });
+        await saveMessage(message, chatRoomId);
         setMessage("");
     };
     //supabase 사용 -> https://supabase.com/docs/guides/realtime/broadcast
