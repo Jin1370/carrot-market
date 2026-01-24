@@ -82,6 +82,20 @@ export default async function ProductDetail(props: {
     const createChatRoom = async () => {
         "use server";
         const session = await getSession();
+        const existingRoom = await db.chatRoom.findFirst({
+            where: {
+                AND: [
+                    { users: { some: { id: product.userId } } },
+                    { users: { some: { id: session.id } } },
+                ],
+            },
+            select: {
+                id: true,
+            },
+        });
+        if (existingRoom) {
+            return redirect(`/chats/${existingRoom.id}`);
+        }
         const room = await db.chatRoom.create({
             data: {
                 users: {
