@@ -37,7 +37,7 @@ const formSchema = z
         confirm_password: z.string().min(4),
     })
     .superRefine(async ({ username }, ctx) => {
-        //인수 (data, context(에러모음))
+        //인수(data, context(에러모음))
         const user = await db.user.findUnique({
             where: {
                 username,
