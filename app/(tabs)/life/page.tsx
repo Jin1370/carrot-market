@@ -4,6 +4,7 @@ import {
     ChatBubbleBottomCenterIcon,
     HandThumbUpIcon,
 } from "@heroicons/react/24/outline";
+import { revalidatePath } from "next/cache";
 import Link from "next/link";
 
 async function getPosts() {
@@ -27,7 +28,10 @@ async function getPosts() {
 export const metadata = {
     title: "동네생활",
 };
-
+const revalidate = async () => {
+    "use server";
+    revalidatePath("/life");
+};
 export default async function Life() {
     const posts = await getPosts();
     return (
@@ -63,6 +67,9 @@ export default async function Life() {
                     </div>
                 </Link>
             ))}
+            <form action={revalidate}>
+                <button>새로고침</button>
+            </form>
         </div>
     );
 }
