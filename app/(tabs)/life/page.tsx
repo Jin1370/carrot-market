@@ -6,6 +6,11 @@ import {
 } from "@heroicons/react/24/outline";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
+import {
+    IoReloadCircle,
+    IoReloadCircleOutline,
+    IoReloadCircleSharp,
+} from "react-icons/io5";
 
 async function getPosts() {
     const posts = await db.post.findMany({
@@ -36,6 +41,11 @@ export default async function Life() {
     const posts = await getPosts();
     return (
         <div className="p-5 flex flex-col">
+            <form action={revalidate} className="mb-3">
+                <button className="flex items-center">
+                    <IoReloadCircleSharp className="size-5 mr-2" /> 새로고침
+                </button>
+            </form>
             {posts.map((post) => (
                 <Link
                     key={post.id}
@@ -67,9 +77,6 @@ export default async function Life() {
                     </div>
                 </Link>
             ))}
-            <form action={revalidate}>
-                <button>새로고침</button>
-            </form>
         </div>
     );
 }
