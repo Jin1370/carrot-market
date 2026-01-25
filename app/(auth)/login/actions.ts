@@ -29,11 +29,12 @@ const formSchema = z.object({
         .email()
         .toLowerCase()
         .refine(checkEmailExists, "An account with this email does not exist."),
-    password: z.string({
-        required_error: "Password is required",
-    }),
-    //.min(PASSWORD_MIN_LENGTH)
-    //.regex(PASSWORD_REGEX, PASSWORD_REGEX_ERROR),
+    password: z
+        .string({
+            required_error: "Password is required",
+        })
+        .min(PASSWORD_MIN_LENGTH)
+        .regex(PASSWORD_REGEX, PASSWORD_REGEX_ERROR),
 });
 
 export async function login(prevState: any, formData: FormData) {
@@ -57,7 +58,7 @@ export async function login(prevState: any, formData: FormData) {
         });
         const ok = await bcrypt.compare(
             result.data.password,
-            user!.password ?? "xxxx" //유저가 패스워드를 갖지 않는다면 "xxxx"와 비교
+            user!.password ?? "xxxx", //유저가 패스워드를 갖지 않는다면 "xxxx"와 비교
         );
         if (ok) {
             await logIn(user!.id);

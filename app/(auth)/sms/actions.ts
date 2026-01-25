@@ -102,16 +102,16 @@ export async function smsLogin(prevState: ActionState, formData: FormData) {
                     },
                 },
             });
-            // const credentials = new Auth({
-            //     apiKey: process.env.VONAGE_API_KEY,
-            //     apiSecret: process.env.VONAGE_API_SECRET,
-            // });
-            // const vonage = new Vonage(credentials);
-            // await vonage.sms.send({
-            //     to: process.env.MY_PHONE_NUMBER!, //to: result.data
-            //     from: process.env.VONAGE_SMS_FROM!,
-            //     text: `Your Karrot verification code is: ${token}`,
-            // });
+            const credentials = new Auth({
+                apiKey: process.env.VONAGE_API_KEY,
+                apiSecret: process.env.VONAGE_API_SECRET,
+            });
+            const vonage = new Vonage(credentials);
+            await vonage.sms.send({
+                to: process.env.MY_PHONE_NUMBER!, //to: result.data
+                from: process.env.VONAGE_SMS_FROM!,
+                text: `Your Karrot verification code is: ${token}`,
+            });
             return {
                 token: true,
             };

@@ -89,7 +89,6 @@ export async function createAccount(prevState: any, formData: FormData) {
     };
     const result = await formSchema.safeParseAsync(data); // await, Async: checkUniqueUsername, checkUniqueEmail가 async이기 때문에 필요
     if (!result.success) {
-        //console.log(result.error.flatten());
         return result.error.flatten();
     } else {
         const hashedPassword = await bcrypt.hash(result.data.password, 12);
