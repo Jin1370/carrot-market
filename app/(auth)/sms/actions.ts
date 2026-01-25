@@ -97,6 +97,7 @@ export async function smsLogin(prevState: ActionState, formData: FormData) {
                                     .randomBytes(10)
                                     .toString("hex"),
                                 phone: result.data,
+                                avatar: "https://blocks.astratic.com/img/user-img-small.png",
                             },
                         },
                     },
