@@ -9,6 +9,11 @@ const nextConfig: NextConfig = {
     typescript: {
         ignoreBuildErrors: true,
     },
+    logging: {
+        fetches: {
+            fullUrl: true,
+        },
+    },
     images: {
         remotePatterns: [
             {
@@ -18,6 +23,9 @@ const nextConfig: NextConfig = {
                 hostname: "**",
             },
         ],
+    },
+    experimental: {
+        taint: true,
     },
 };
 

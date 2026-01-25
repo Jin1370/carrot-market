@@ -3,6 +3,7 @@ import db from "@/lib/db";
 import getSession from "@/lib/session";
 import { Prisma } from "@prisma/client";
 import { notFound } from "next/navigation";
+import { experimental_taintObjectReference } from "react";
 
 async function getRoom(id: string) {
     const room = await db.chatRoom.findUnique({
@@ -59,6 +60,13 @@ async function getUserProfile() {
             avatar: true,
         },
     });
+    if (user) {
+        // user 객체 클라이언트 컴포넌트로 전달 방지
+        experimental_taintObjectReference(
+            "보안 경고: User 정보가 클라이언트에 노출되었습니다.",
+            user,
+        );
+    }
     return user;
 }
 
