@@ -99,6 +99,8 @@ export async function createAccount(prevState: any, formData: FormData) {
                 username: result.data.username,
                 email: result.data.email,
                 password: hashedPassword,
+                //사진 업로드 로직 대신 임시처리
+                avatar: "https://i.namu.wiki/i/Bge3xnYd4kRe_IKbm2uqxlhQJij2SngwNssjpjaOyOqoRhQlNwLrR2ZiK-JWJ2b99RGcSxDaZ2UCI7fiv4IDDQ.webp",
             },
             select: {
                 id: true,

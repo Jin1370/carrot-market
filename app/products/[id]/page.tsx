@@ -183,7 +183,7 @@ generateStaticParams: 빌드 시점에 동적 라우트([id])에 어떤 값들�
 유저가 미리 생성되지 않은 페이지로 이동 시, dynamic page로 간주하고 db에 접속하여 화면을 보여준 뒤 저장하여 다시 static page가 됨
 *서비스가 배포되기 전, 즉 빌드 타임(컴퓨터가 HTML을 굽는 시간)에 실행. 하지만 getSession()은 런타임(사용자가 접속한 순간)에 쿠키를 확인해야 알 수 있는 정보
     ->getIsOwner 로직을 클라이언트 컴포넌트로 분리하거나 페이지 렌더링 후에 처리
-*/
+
 export async function generateStaticParams() {
     const products = await db.product.findMany({
         select: {
@@ -192,3 +192,4 @@ export async function generateStaticParams() {
     });
     return products.map((product) => ({ id: String(product.id) }));
 }
+*/
