@@ -27,11 +27,6 @@ export async function uploadProduct(_: any, formData: FormData) {
     const user = await db.user.findUnique({
         where: { id: session.id },
     });
-    console.log(session.id);
-    if (!user) {
-        throw new Error("User not found in database");
-    }
-
     const data = {
         photo: formData.get("photo"),
         title: formData.get("title"),
@@ -39,12 +34,15 @@ export async function uploadProduct(_: any, formData: FormData) {
         description: formData.get("description"),
     };
     if (data.photo instanceof File) {
+        /*
         const photoData = await data.photo.arrayBuffer();
         await fs.writeFile(
             `./public/${data.photo.name}`,
             Buffer.from(photoData),
         );
         data.photo = `/${data.photo.name}`;
+        */
+        data.photo = "https://blocks.astratic.com/img/general-img-portrait.png";
     }
     const result = productSchema.safeParse(data);
     if (!result.success) {
