@@ -20,7 +20,6 @@ async function getIsOwner(userId: number) {
 }
 
 async function getProduct(id: number) {
-    console.log("product");
     const product = await db.product.findUnique({
         where: {
             id,
