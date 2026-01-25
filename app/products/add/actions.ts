@@ -23,6 +23,15 @@ const productSchema = z.object({
 });
 
 export async function uploadProduct(_: any, formData: FormData) {
+    const session = await getSession();
+    const user = await db.user.findUnique({
+        where: { id: session.id },
+    });
+    console.log(session.id);
+    if (!user) {
+        throw new Error("User not found in database");
+    }
+
     const data = {
         photo: formData.get("photo"),
         title: formData.get("title"),

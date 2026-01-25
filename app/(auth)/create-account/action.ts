@@ -32,8 +32,10 @@ const formSchema = z
             //.transform((username) => `🥕${username}🥕`) //transform된 결과 반환. 만약 {} 쓸거면 return 반드시 필요. username => {return `🥕${username}🥕`}
             .refine(checkUserName, "no potatoes allowed!"), //T or F 반환. T면 통과
         email: z.string().email().toLowerCase(),
-        password: z.string().min(PASSWORD_MIN_LENGTH),
-        //.regex(PASSWORD_REGEX, PASSWORD_REGEX_ERROR),
+        password: z
+            .string()
+            .min(PASSWORD_MIN_LENGTH)
+            .regex(PASSWORD_REGEX, PASSWORD_REGEX_ERROR),
         confirm_password: z.string().min(4),
     })
     .superRefine(async ({ username }, ctx) => {
